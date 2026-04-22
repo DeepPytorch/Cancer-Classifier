@@ -1,0 +1,43 @@
+if __name__ == "__main__":
+    EPOCHS    = 15
+    SAVE_PATH = "best_cancer_model.pt"
+
+    device    = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
+
+    model     = CancerModel(input_dim).to(device)
+    criterion = nn.BCELoss()
+    optimizer = torch.optim.Adam(model.parameters(), lr=1e-3, weight_decay=1e-4)
+    scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=5, gamma=0.5)
+
+    history = {"train_loss": [], "val_loss": [], "val_acc": []}
+    best_val_loss = float("inf")
+
+    print(f"\n{'Epoch':>5}  {'Train Loss':>10}  {'Val Loss':>8}  {'Val Acc':>8}")
+    print("-" * 42)
+
+    for epoch in range(1, EPOCHS + 1):
+        train_loss            = train_one_epoch(model, train_loader, criterion, optimizer, device)
+        val_loss, val_acc     = evaluate(model, test_loader, criterion, device)
+        scheduler.step()
+
+        history["train_loss"].append(train_loss)
+        history["val_loss"].append(val_loss)
+        history["val_acc"].append(val_acc)
+
+        # Save best model
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            torch.save(model.state_dict(), SAVE_PATH)
+            saved_marker = " ✓ saved"
+        else:
+            saved_marker = ""
+
+        print(f"{epoch:>5}  {train_loss:>10.4f}  {val_loss:>8.4f}  {val_acc:>7.2%}{saved_marker}")
+
+    print(f"\nBest val loss: {best_val_loss:.4f}  →  model saved to '{SAVE_PATH}'")
+
+    # ── Load best weights & final evaluation ─────────────────────────────────
+    model.load_state_dict(torch.load(SAVE_PATH, map_location=device))
+    _, final_acc = evaluate(model, test_loader, criterion, device)
+    print(f"Final test accuracy (best model): {final_acc:.2%}")

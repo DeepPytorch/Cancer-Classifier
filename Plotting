@@ -1,0 +1,23 @@
+epochs = range(1, EPOCHS + 1)
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+
+    ax1.plot(epochs, history["train_loss"], label="Train Loss", marker="o")
+    ax1.plot(epochs, history["val_loss"],   label="Val Loss",   marker="s")
+    ax1.set_title("Loss per Epoch")
+    ax1.set_xlabel("Epoch")
+    ax1.set_ylabel("BCE Loss")
+    ax1.legend()
+    ax1.grid(True, alpha=0.3)
+
+    ax2.plot(epochs, [a * 100 for a in history["val_acc"]], color="green", marker="^")
+    ax2.set_title("Validation Accuracy per Epoch")
+    ax2.set_xlabel("Epoch")
+    ax2.set_ylabel("Accuracy (%)")
+    ax2.set_ylim(0, 100)
+    ax2.grid(True, alpha=0.3)
+
+    plt.suptitle("Cancer Classification — Training Summary", fontweight="bold")
+    plt.tight_layout()
+    plt.savefig("training_results.png", dpi=150)
+    plt.show()
+    print("Plot saved to 'training_results.png'")

@@ -1,0 +1,11 @@
+def evaluate(model, loader, criterion, device):
+    model.eval()
+    total_loss, correct, total = 0.0, 0, 0
+    with torch.no_grad():
+        for X, y in loader:
+            X, y = X.to(device), y.to(device)
+            preds = model(X)
+            total_loss += criterion(preds, y).item() * X.size(0)
+            correct    += ((preds > 0.5).float() == y).sum().item()
+            total      += y.size(0)
+    return total_loss / len(loader.dataset), correct / total
